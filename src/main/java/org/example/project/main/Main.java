@@ -1,29 +1,36 @@
 package org.example.project.main;
 
+import org.example.project.model.Employee;
+import org.example.project.repository.EmployeeRepository;
+import org.example.project.repository.Repository;
 import org.example.project.util.DatabaseConnection;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
 
 
 
-        try(Connection myConn = DatabaseConnection.getInstance();
-            Statement mystatm = myConn.createStatement();
-            ResultSet myResult = mystatm.executeQuery("SELECT * FROM employees");) {
+        try(Connection myConn = DatabaseConnection.getInstance();){
+            Repository<Employee> repository = new EmployeeRepository();
+            repository.findAll().forEach(System.out::println);
+            System.out.println("\n \nThe employee you searched for is: " + repository.getById(2));
+            Employee employee = new Employee();
 
-            System.out.println("Successful Conection");
-            while(myResult.next()){
-                System.out.println("El nombre es: "+myResult.getString("first_name"));
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            System.out.println("There was an error in the connection.");
+            System.out.println("\n *******UPDATING EMPLOYEE******");
+            employee.setId(1);
+            employee.setFirst_name("Test Actualizado");
+            employee.setPa_surname("Reyes");
+            employee.setMa_surname("Jimenez");
+            employee.setEmail("test_actualizar@gmail.com");
+            employee.setSalary((float)15000);
+            repository.save(employee);
+            System.out.println("\n *******UPDATING EMPLOYEE******");
+
+            repository.findAll().forEach(System.out::println);
+
         }
-        }
+    }
 }
 
