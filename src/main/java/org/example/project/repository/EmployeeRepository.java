@@ -47,10 +47,10 @@ public class EmployeeRepository implements Repository<Employee> {
 
 
     @Override
-    /**
-     * Save or update an employee in the database.
-     *
-     * @param employee The object of type Employee to save or update.
+    /*
+      Save or update an employee in the database.
+
+      @param employee The object of type Employee to save or update.
      * @throws SQLException If an error occurs when interacting with the database.
      */
     public void save(Employee employee) throws SQLException {
@@ -58,7 +58,7 @@ public class EmployeeRepository implements Repository<Employee> {
         String sql;
         boolean update= false;
         // Determines whether an update or insert should be performed on the database.
-        if(employee.getId() > 0) {
+        if(employee.getId() != null && employee.getId() > 0) {
             sql = "UPDATE employees SET first_name = ?, pa_surname = ?, ma_surname = ?, email = ?, salary = ? WHERE id = ?";
             update= true;
         }else{
@@ -89,7 +89,19 @@ public class EmployeeRepository implements Repository<Employee> {
     }
 
     @Override
-    public void delete(Integer id) {
+    public void delete(Integer id) throws SQLException {
+        try(PreparedStatement myStamt = getConnection().prepareStatement("DELETE FROM employees WHERE id=?")){
+            myStamt.setInt(1,id);
+            int rowsDelete= myStamt.executeUpdate();
+            if (rowsDelete == 1){
+                System.out.println("Empleado eliminado correctatemte");
+
+            }
+
+
+        }
+
+
 
     }
 
