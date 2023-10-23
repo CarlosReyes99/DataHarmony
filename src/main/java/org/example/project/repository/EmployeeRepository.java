@@ -1,22 +1,23 @@
 package org.example.project.repository;
 
 import org.example.project.model.Employee;
-import org.example.project.util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeeRepository implements Repository<Employee> {
-    private Connection getConnection() throws SQLException {
-        return DatabaseConnection.getInstance();
+    private Connection myConn;
+    public EmployeeRepository(Connection myConn) {
+        this.myConn = myConn;
     }
+
 
     @Override
     public List<Employee> findAll() throws SQLException {
         List<Employee> employees = new ArrayList<>();
         try (
-                Statement mystatm = getConnection().createStatement();
+                Statement mystatm = myConn.createStatement();
                 ResultSet myResult = mystatm.executeQuery("SELECT * FROM employees")) {
             while (myResult.next()) {
                 createEmployee(myResult);
@@ -32,7 +33,7 @@ public class EmployeeRepository implements Repository<Employee> {
     @Override
     public Employee getById(Integer id) throws SQLException {
         Employee employee = null;
-        try (PreparedStatement myStatm = getConnection().prepareStatement("SELECT * FROM employees WHERE id= ?")) {
+        try (PreparedStatement myStatm = myConn.prepareStatement("SELECT * FROM employees WHERE id= ?")) {
             myStatm.setInt(1, id);
             try (ResultSet myRes = myStatm.executeQuery()) {
                 if (myRes.next()){
@@ -59,23 +60,25 @@ public class EmployeeRepository implements Repository<Employee> {
         boolean update= false;
         // Determines whether an update or insert should be performed on the database.
         if(employee.getId() != null && employee.getId() > 0) {
-            sql = "UPDATE employees SET first_name = ?, pa_surname = ?, ma_surname = ?, email = ?, salary = ? WHERE id = ?";
+            sql = "UPDATE employees SET first_name = ?, pa_surname = ?, ma_surname = ?, email = ?, salary = ?, curp= ? WHERE id = ?";
             update= true;
         }else{
-            sql ="INSERT INTO employees (first_name, pa_surname, ma_surname, email, salary) VALUES( ?,?,?,?,?)";
+            sql ="INSERT INTO employees (first_name, pa_surname, ma_surname, email, salary, curp) VALUES( ?,?,?,?,?,?)";
         }
 
         try(
-        PreparedStatement myStamt = getConnection().prepareStatement(sql)){
+        PreparedStatement myStamt = myConn.prepareStatement(sql)){
             // Set the parameters of the SQL query.
             myStamt.setString(1, employee.getFirst_name());
             myStamt.setString(2, employee.getPa_surname());
             myStamt.setString(3, employee.getMa_surname());
             myStamt.setString(4, employee.getEmail());
             myStamt.setFloat(5, employee.getSalary());
+            myStamt.setString(6, employee.getCurp());
+
             if(update){
                 // If it is an update, set the ID value additionally.
-                myStamt.setInt(6, employee.getId());
+                myStamt.setInt(7, employee.getId());
                 int rowsUpdated = myStamt.executeUpdate();
                 if(rowsUpdated>0){
                     System.out.println("Datos actualizados correctamente: "+rowsUpdated);
@@ -90,7 +93,7 @@ public class EmployeeRepository implements Repository<Employee> {
 
     @Override
     public void delete(Integer id) throws SQLException {
-        try(PreparedStatement myStamt = getConnection().prepareStatement("DELETE FROM employees WHERE id=?")){
+        try(PreparedStatement myStamt = myConn.prepareStatement("DELETE FROM employees WHERE id=?")){
             myStamt.setInt(1,id);
             int rowsDelete= myStamt.executeUpdate();
             if (rowsDelete == 1){
